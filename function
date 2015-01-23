@@ -1,0 +1,150 @@
+Public Function ilReference(indirizzo As String) As String
+        scrivilog("INIZIO Assegnazione Reference")
+        ' istruzioni per la determinazione del reference da assegnare ad un file, dato un indirizzo.
+        ' il risultato non contiene "_"
+
+        Dim elencofile As Array
+        Dim prereference, numero, elemento As String
+        Dim listafile As New List(Of String)
+        Dim listanumeri As New List(Of Integer)
+        Dim posizione, cifre, massimo As Integer
+        Dim Directories() As String
+        Dim d As DirectoryInfo
+        Dim attributes As FileAttributes
+        ' le cartelle nell'indirizzo
+
+        Directories = Directory.GetDirectories(indirizzo)
+        For Each Dir As String In Directories
+            d = New DirectoryInfo(Dir)
+            listafile.Add(d.Name)
+
+        Next
+        ' creo la lista di tutti i file che si trovano nel percorso assegnato
+        elencofile = My.Computer.FileSystem.GetFiles(indirizzo).ToArray()
+
+        For Each File In elencofile
+
+            attributes = System.IO.File.GetAttributes(File)
+
+            'se è nascosto o è thumbs non lo inserisco, altrimenti sì
+            If (attributes And FileAttributes.Hidden) = FileAttributes.Hidden Or InStr(File.ToString, "thumbs") <> 0 Or InStr(File.ToString, "THUMBS") <> 0 Then
+            Else
+
+                listafile.Add(Path.GetFileName(File))
+            End If
+            ' se la lista è vuota (primo file o cartella nella cartella)
+        Next
+
+        scrivilog("Listafile Count: " & listafile.Count)
+        If listafile.Count = 0 Then
+
+            ' estraggo la cartella dall'indirizzo fornito
+vuoto:
+
+            d = New DirectoryInfo(indirizzo)
+            prereference = d.Name
+
+
+            posizione = InStr(prereference, "_")
+
+            If posizione = 0 Then
+                'messagebox errore 
+            Else
+
+                prereference = Mid(prereference, 1, posizione - 1)
+                If prereference <> "" Then
+                    elemento = Mid(d.Name.ToString, 1, posizione - 1)
+
+
+                End If
+            End If
+            ' aggiungo .01 e ho finito
+            ilReference = elemento & "." & "01"
+            Exit Function
+        Else
+
+
+            ' per tutti i file ( for) :
+            For Each item In listafile
+
+                ' determino la posizione del _ e conseguentemente la lunghezza del reference
+                posizione = InStr(item, "_")
+
+                ' elemento: 02.10_mod 03 verbale
+
+
+                If posizione = 0 Then
+
+                Else
+
+                    prereference = Mid(item, 1, posizione - 1)
+                    'prereference = 02.10
+                    If prereference <> "" Then
+
+                        elemento = Mid(item, 1, posizione - 3)
+                        'elemento = 02.
+
+                    End If
+
+
+                    ' estraggo le ultime due cifre del reference
+                    ' valorizzo una variabile integer con le due cifre che ho estratto
+                    Try
+
+
+                        cifre = Mid(item, Len(elemento) + 1, 2)
+                        'cifre: 10
+                        ' aggiungo queste cifre ad una lista che le conterrà tutte
+
+
+                        listanumeri.Add(cifre)
+                    Catch
+                    End Try
+                End If
+            Next
+
+            ' calcolo il massimo della lista alimentata, e lo assegno ad una variabile testo
+
+            Try
+                massimo = listanumeri.Max + 1
+
+            Catch
+            End Try
+
+            ' se è minore di 10 metto uno 0 davanti altrimenti no
+            If massimo < 10 Then
+                numero = "0" & massimo.ToString
+            Else
+                numero = massimo.ToString
+            End If
+
+            ' riprendo un reference per un file e gli tolgo le ultime due cifre
+            '  prereference = Mid(listafile(1), 1, posizione = InStr(listafile(1), "_") - 1)
+
+            'determino il nuovo reference 
+            If listanumeri.Count = 0 Then
+                GoTo vuoto
+            Else
+                d = New DirectoryInfo(indirizzo)
+                prereference = d.Name
+
+
+                posizione = InStr(prereference, "_")
+
+                If posizione = 0 Then
+                    'messagebox errore 
+                Else
+
+                    prereference = Mid(prereference, 1, posizione - 1)
+                    If prereference <> "" Then
+                        elemento = Mid(d.Name.ToString, 1, posizione - 1)
+
+
+                    End If
+                End If
+
+                ilReference = elemento & "." & numero
+                scrivilog("Reference: " & ilReference)
+            End If
+        End If
+    End Function
